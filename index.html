@@ -6,98 +6,164 @@
     <title>NØVA Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #1c1c1c);
+            --text-color: var(--tg-theme-text-color, #ffffff);
+            --hint-color: var(--tg-theme-hint-color, #aaaaaa);
+            --button-color: var(--tg-theme-button-color, #3390ec);
+            --secondary-bg: var(--tg-theme-secondary-bg-color, #2b2b2b);
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--tg-theme-bg-color, #1c1c1c);
-            color: var(--tg-theme-text-color, #ffffff);
-            margin: 0; padding: 12px; box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color); color: var(--text-color);
+            margin: 0; padding: 15px; box-sizing: border-box;
+            padding-bottom: 90px;
         }
 
-        header {
-            text-align: center; margin-bottom: 20px;
-            font-weight: 800; letter-spacing: 1px; font-size: 1.3em;
-            text-transform: uppercase;
+        /* Навигация */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--secondary-bg); display: flex;
+            justify-content: space-around; padding: 12px 0;
+            border-top: 1px solid rgba(255,255,255,0.05); z-index: 100;
         }
-        header span { color: var(--tg-theme-button-color, #3390ec); }
+        .nav-item { text-align: center; font-size: 11px; color: var(--hint-color); flex: 1; }
+        .nav-item.active { color: var(--button-color); }
+        .nav-item-icon { font-size: 22px; margin-bottom: 3px; }
 
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            padding-bottom: 80px;
-        }
+        /* Секции */
+        .page { display: none; }
+        .page.active { display: block; }
 
-        .shop-card {
-            background-color: var(--tg-theme-secondary-bg-color, #2b2b2b);
-            border-radius: 12px;
-            padding: 14px;
-            text-align: center;
-            cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: transform 0.1s;
+        header { text-align: center; margin-bottom: 15px; font-weight: 800; text-transform: uppercase; }
+        header span { color: var(--button-color); }
+
+        /* Профиль */
+        .profile-card {
+            background: var(--secondary-bg); border-radius: 15px; padding: 20px;
+            text-align: center; margin-bottom: 15px;
         }
+        .user-avatar { width: 65px; height: 65px; background: var(--button-color); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; }
+        .balance-box { font-size: 26px; font-weight: 800; margin: 15px 0; color: #34c759; }
         
-        .shop-card:active { transform: scale(0.96); opacity: 0.9; }
-
-        .shop-logo { font-size: 32px; margin-bottom: 8px; }
-
-        .shop-title {
-            font-weight: 600; font-size: 13px; margin: 4px 0;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        /* Кнопка пополнения */
+        .deposit-btn {
+            background: var(--button-color); color: #fff; border: none;
+            padding: 12px 25px; border-radius: 10px; font-weight: 600;
+            width: 100%; margin-top: 10px; font-size: 15px;
         }
 
-        .tag {
-            font-size: 10px; padding: 2px 6px; border-radius: 6px;
-            font-weight: 600; background: rgba(255,255,255,0.1);
-        }
-        .tag.green { color: #34c759; background: rgba(52, 199, 89, 0.1); }
-        .tag.blue { color: #3390ec; background: rgba(51, 144, 236, 0.1); }
+        .user-info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .user-info-row span:last-child { color: var(--hint-color); }
+
+        /* Маркет */
+        .search-container { margin-bottom: 15px; }
+        #shop-search { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--secondary-bg); color: var(--text-color); outline: none; }
+        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .shop-card { background: var(--secondary-bg); border-radius: 12px; padding: 15px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .shop-logo { font-size: 32px; margin-bottom: 5px; }
+        .tag { font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 700; text-transform: uppercase; background: rgba(52, 199, 89, 0.1); color: #34c759; }
     </style>
 </head>
 <body>
 
-    <header>NØVA <span>MARKET</span></header>
+    <div id="market-page" class="page active">
+        <header>NØVA <span>MARKET</span></header>
+        <div class="search-container">
+            <input type="text" id="shop-search" placeholder="Поиск магазина..." oninput="filterShops()">
+        </div>
+        <div class="grid-container" id="shop-grid"></div>
+    </div>
 
-    <div class="grid-container">
-        <script>
-            // Список твоих ботов
-            const bots = [
-                { name: "AX1 Premium", username: "Only1AXts_bot", icon: "💎", tag: "Premium" },
-                { name: "Narvesen Shop", username: "narvesen05bot", icon: "🏪", tag: "Retail" },
-                { name: "WW King", username: "WorIdWideKing_tsbot", icon: "👑", tag: "Global" },
-                { name: "UK Reserve", username: "UK_National_Reserve_tsbot", icon: "🇬🇧", tag: "Reserve" }
-            ];
+    <div id="profile-page" class="page">
+        <header>ВАШ <span>ПРОФИЛЬ</span></header>
+        <div class="profile-card">
+            <div class="user-avatar" id="avatar-initial">?</div>
+            <h3 id="user-full-name">Загрузка...</h3>
+            <div class="balance-box" id="user-balance">0.00 $</div>
+            <button class="deposit-btn" onclick="showDepositOptions()">➕ ПОПОЛНИТЬ</button>
+        </div>
+        <div class="profile-card" style="padding: 5px 20px;">
+            <div class="user-info-row"><span>ID:</span><span id="user-id">0</span></div>
+            <div class="user-info-row"><span>Статус:</span><span>Client</span></div>
+            <div class="user-info-row"><span>Регион:</span><span>EU / LV</span></div>
+        </div>
+    </div>
 
-            const container = document.querySelector('.grid-container');
-            
-            bots.forEach(bot => {
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="showPage('market')">
+            <div class="nav-item-icon">🛒</div>
+            Маркет
+        </div>
+        <div class="nav-item" onclick="showPage('profile')">
+            <div class="nav-item-icon">👤</div>
+            Профиль
+        </div>
+    </div>
+
+    <script>
+        const bots = [
+            { name: "AX1 Premium", username: "Only1AXts_bot", icon: "💎", tag: "Premium" },
+            { name: "Narvesen Shop", username: "narvesen05bot", icon: "🏪", tag: "Retail" },
+            { name: "WW King", username: "WorIdWideKing_tsbot", icon: "👑", tag: "Global" },
+            { name: "UK Reserve", username: "UK_National_Reserve_tsbot", icon: "🇬🇧", tag: "Reserve" }
+        ];
+
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+
+        // Данные пользователя
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            const user = tg.initDataUnsafe.user;
+            document.getElementById('user-full-name').innerText = user.first_name;
+            document.getElementById('user-id').innerText = user.id;
+            document.getElementById('avatar-initial').innerText = user.first_name[0];
+        }
+
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(pageId + '-page').classList.add('active');
+            event.currentTarget.classList.add('active');
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function renderShops(filter = "") {
+            const container = document.getElementById('shop-grid');
+            container.innerHTML = "";
+            bots.filter(b => b.name.toLowerCase().includes(filter.toLowerCase())).forEach(bot => {
                 const card = document.createElement('div');
                 card.className = 'shop-card';
-                card.onclick = () => openBot(bot.username); 
-                
-                card.innerHTML = `
-                    <div class="shop-logo">${bot.icon}</div>
-                    <div class="shop-title">${bot.name}</div>
-                    <div class="tag ${bot.tag === 'Retail' ? 'green' : 'blue'}">${bot.tag}</div>
-                `;
+                card.onclick = () => tg.openTelegramLink('https://t.me/' + bot.username);
+                card.innerHTML = `<div class="shop-logo">${bot.icon}</div><div class="shop-title">${bot.name}</div><span class="tag">${bot.tag}</span>`;
                 container.appendChild(card);
             });
+        }
 
-            let tg = window.Telegram.WebApp;
-            tg.expand();
-            
-            // Настройка главной кнопки (твоя поддержка)
-            tg.MainButton.setText("СВЯЗАТЬСЯ С АДМИНОМ").show();
-            tg.MainButton.onClick(() => {
-                // Замени 'ТВОЙ_ЛОГИН' на свой реальный юзернейм для связи
-                tg.openTelegramLink('https://t.me/ТВОЙ_ЛОГИН');
+        // Функция пополнения
+        function showDepositOptions() {
+            tg.showPopup({
+                title: 'Пополнение баланса',
+                message: 'Выберите удобный способ оплаты:',
+                buttons: [
+                    {id: 'crypto', type: 'default', text: 'Криптовалюта (USDT/TON)'},
+                    {id: 'card', type: 'default', text: 'Карта (EU/SEPA)'},
+                    {id: 'cancel', type: 'destructive', text: 'Отмена'}
+                ]
+            }, function(buttonId) {
+                if (buttonId === 'crypto' || buttonId === 'card') {
+                    // Здесь можно указать ссылку на твой платежный бот или на твой профиль
+                    tg.openTelegramLink('https://t.me/ТВОЙ_ЛОГИН');
+                }
             });
+        }
 
-            function openBot(username) {
-                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-                tg.openTelegramLink('https://t.me/' + username);
-            }
-        </script>
-    </div>
+        function filterShops() { renderShops(document.getElementById('shop-search').value); }
+        
+        tg.MainButton.setText("ПОДДЕРЖКА").show().onClick(() => tg.openTelegramLink('https://t.me/ТВОЙ_ЛОГИН'));
+
+        renderShops();
+    </script>
 </body>
 </html>
