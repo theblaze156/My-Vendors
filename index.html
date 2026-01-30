@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NØVA Market - My Bots</title>
+    <title>NØVA Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -42,7 +42,7 @@
         .shop-logo { font-size: 32px; margin-bottom: 8px; }
 
         .shop-title {
-            font-weight: 600; font-size: 14px; margin: 4px 0;
+            font-weight: 600; font-size: 13px; margin: 4px 0;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
@@ -60,24 +60,12 @@
 
     <div class="grid-container">
         <script>
+            // Список твоих ботов
             const bots = [
-                { name: "GoGreen", id: "gogreen", icon: "🌿", tag: "Retail" },
-                { name: "AX1", id: "ax1", icon: "💎", tag: "Premium" },
-                { name: "Pablo UK", id: "pablouk", icon: "🇬🇧", tag: "Retail" },
-                { name: "Tolte", id: "tolte", icon: "🔥", tag: "Opt" },
-                { name: "Parcel", id: "parcel", icon: "📦", tag: "Delivery" },
-                { name: "Meph", id: "meph", icon: "🧪", tag: "Retail" },
-                { name: "Breakology", id: "breakology", icon: "🧬", tag: "Lab" },
-                { name: "Crystmas", icon: "❄️", id: "crystmas", tag: "Seasonal" },
-                { name: "DMT God", id: "thedmtgod", icon: "👁", tag: "Rare" },
-                { name: "Rainbow", id: "rainbow", icon: "🌈", tag: "Retail" },
-                { name: "Latvia", id: "latvia", icon: "🇱🇻", tag: "Region" },
-                { name: "D-Duck", id: "dduck", icon: "🦆", tag: "Retail" },
-                { name: "Walker", id: "walker", icon: "🚶", tag: "Opt" },
-                { name: "D-Duck 1", id: "dduck1", icon: "🐥", tag: "Retail" },
-                { name: "Ghost", id: "ghost", icon: "👻", tag: "Hidden" },
-                { name: "UK National", id: "uknational", icon: "🇬🇧", tag: "National" },
-                { name: "Latvia 2", id: "latvia2", icon: "🇱🇻", tag: "Region" }
+                { name: "AX1 Premium", username: "Only1AXts_bot", icon: "💎", tag: "Premium" },
+                { name: "Narvesen Shop", username: "narvesen05bot", icon: "🏪", tag: "Retail" },
+                { name: "WW King", username: "WorIdWideKing_tsbot", icon: "👑", tag: "Global" },
+                { name: "UK Reserve", username: "UK_National_Reserve_tsbot", icon: "🇬🇧", tag: "Reserve" }
             ];
 
             const container = document.querySelector('.grid-container');
@@ -85,8 +73,7 @@
             bots.forEach(bot => {
                 const card = document.createElement('div');
                 card.className = 'shop-card';
-                // Важно: замени 'your_bot_suffix' на реальное окончание твоих ботов, например '_bot'
-                card.onclick = () => openBot(bot.id + '_bot'); 
+                card.onclick = () => openBot(bot.username); 
                 
                 card.innerHTML = `
                     <div class="shop-logo">${bot.icon}</div>
@@ -98,8 +85,13 @@
 
             let tg = window.Telegram.WebApp;
             tg.expand();
+            
+            // Настройка главной кнопки (твоя поддержка)
             tg.MainButton.setText("СВЯЗАТЬСЯ С АДМИНОМ").show();
-            tg.MainButton.onClick(() => tg.openTelegramLink('https://t.me/ТВОЙ_ЛОГИН'));
+            tg.MainButton.onClick(() => {
+                // Замени 'ТВОЙ_ЛОГИН' на свой реальный юзернейм для связи
+                tg.openTelegramLink('https://t.me/ТВОЙ_ЛОГИН');
+            });
 
             function openBot(username) {
                 if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
