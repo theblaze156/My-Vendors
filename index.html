@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NØVA Clone Market</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Основные стили, адаптирующиеся под тему Telegram */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #212121); /* Темный фон по умолчанию */
+            color: var(--tg-theme-text-color, #ffffff); /* Белый текст по умолчанию */
+            margin: 0;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+
+        /* Заголовок */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            font-size: 1.2em;
+        }
+        header span { color: var(--tg-theme-button-color, #3390ec); } /* Акцентный цвет */
+
+        /* Сетка магазинов */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Две колонки */
+            gap: 12px; /* Расстояние между карточками */
+            padding-bottom: 60px; /* Отступ снизу, чтобы кнопка не перекрывала контент */
+        }
+
+        /* Стиль карточки магазина (как в NØVA) */
+        .shop-card {
+            background-color: var(--tg-theme-secondary-bg-color, #2c2c2c); /* Чуть светлее фона */
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.1s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05); /* Тонкая рамка для четкости */
+        }
+        
+        /* Эффект нажатия */
+        .shop-card:active {
+            transform: scale(0.97);
+            opacity: 0.8;
+        }
+
+        /* Логотип магазина (заглушка в виде эмодзи для примера) */
+        .shop-logo {
+            font-size: 40px;
+            margin-bottom: 10px;
+            display: inline-block;
+             /* Если будешь использовать картинки, раскомментируй ниже: */
+             /* width: 50px; height: 50px; border-radius: 50%; object-fit: cover; */
+        }
+
+        /* Название магазина */
+        .shop-title {
+            font-weight: 600;
+            font-size: 15px;
+            margin: 5px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Статусы и теги */
+        .shop-tags {
+            font-size: 11px;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .tag {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        
+        /* Цвета для статусов */
+        .tag.green { color: #34c759; background-color: rgba(52, 199, 89, 0.1); }
+        .tag.orange { color: #ff9f0a; background-color: rgba(255, 159, 10, 0.1); }
+        .tag.blue { color: var(--tg-theme-button-color); background-color: rgba(50, 144, 236, 0.1); }
+    </style>
+</head>
+<body>
+
+    <header>
+        NØVA <span>MARKET</span> CLONE
+    </header>
+
+    <div class="grid-container">
+        <div class="shop-card" onclick="openBotLink('narvesen05bot')">
+            <div class="shop-logo">🏪</div> 
+            <div class="shop-title">Narvesen</div>
+            <div class="shop-tags">
+                <span class="tag green">100% Retail</span>
+                <span class="tag blue">Tallinn</span>
+            </div>
+        </div>
+
+        <div class="shop-card" onclick="openBotLink('est100bot')">
+            <div class="shop-logo">🇪🇪</div>
+            <div class="shop-title">est100bot</div>
+            <div class="shop-tags">
+                <span class="tag green">Retail</span>
+                <span class="tag orange">70% Opt</span>
+            </div>
+        </div>
+
+        <div class="shop-card" onclick="openBotLink('aladin_bot_username')">
+            <div class="shop-logo">🧞‍♂️</div>
+            <div class="shop-title">Aladin Shop</div>
+            <div class="shop-tags">
+                <span class="tag blue">Verified</span>
+            </div>
+        </div>
+         <div class="shop-card" style="opacity: 0.5;">
+            <div class="shop-logo">🔜</div>
+            <div class="shop-title">Скоро...</div>
+            <div class="shop-tags">
+                <span class="tag">Place Available</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Развернуть на весь экран
+
+        // Настройка Главной Кнопки (внизу)
+        tg.MainButton.setText("ПОДДЕРЖКА / АДМИН"); // Текст кнопки
+        tg.MainButton.show(); // Показать кнопку
+
+        // Действие при нажатии на Главную Кнопку
+        tg.MainButton.onClick(function(){
+             // Замените 'YourSupportBot' на юзернейм вашего админа или саппорт-бота
+            tg.openTelegramLink('https://t.me/YourSupportBot');
+        });
+
+        // Функция для открытия ссылки на магазин
+        // Важно использовать именно tg.openTelegramLink, чтобы не вылетать в браузер
+        function openBotLink(username) {
+            // Вибрация для тактильного отклика при клике (если поддерживается)
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+            tg.openTelegramLink('https://t.me/' + username);
+        }
+    </script>
+</body>
+</html>
