@@ -270,55 +270,110 @@
         </div>
     </nav>
 
-    <script>
-        const API_URL = "https://66d29f6b67a467.lhr.l";
+        <script>
+        const API_URL = "https://bef8aeed09e357.lhr.life"; // НЕ ЗАБУДЬ ОБНОВИТЬ ССЫЛКУ!
         let tg = window.Telegram.WebApp;
         tg.expand();
+        tg.backgroundColor = "#000000";
 
+        // DATA
         const ALL_BOTS = {
-            ax: { n: "AX1 Premium", u: "Only1AXts_bot", i: "💎", d: "Elite NØVA branch. VIP service and high-speed delivery." },
-            king: { n: "WW King", u: "WorIdWideKing_tsbot", i: "👑", d: "Global hub. Wholesale and retail goods for everyone." },
+            ax: { n: "AX1 Premium", u: "Only1AXts_bot", i: "💎", d: "Elite branch of NØVA. High-speed delivery and premium service." },
+            king: { n: "WW King", u: "WorIdWideKing_tsbot", i: "👑", d: "Global hub. Wholesale and retail goods." },
             narvesen: { n: "Narvesen Shop", u: "narvesen05bot", i: "🏪", d: "Northern Europe branch. Serving NO & EE." },
             uk: { n: "UK Reserve", u: "UK_National_Reserve_tsbot", i: "🇬🇧", d: "Official UK stock. Local shipments." }
         };
 
-        const REGIONS = { UK:['ax','king','uk'], EU:['ax','king','narvesen'], US:['ax','king'], NO:['narvesen','king'], EE:['narvesen','king'] };
+        const REGIONS = { UK:['ax','king','uk'], EU:['ax','king','narvesen'], NO:['narvesen','king'], EE:['narvesen','king'], US:['ax','king'] };
         let currentRegion = 'EU';
+        
+        // ЗАГРУЗКА ИЗБРАННОГО ИЗ ПАМЯТИ
+        let favorites = JSON.parse(localStorage.getItem('nova_favs')) || [];
+
+        function toggleFav(key, event) {
+            event.stopPropagation(); // Чтобы не открывался профиль бота при клике на сердце
+            const index = favorites.indexOf(key);
+            if (index > -1) {
+                favorites.splice(index, 1);
+            } else {
+                favorites.push(key);
+            }
+            localStorage.setItem('nova_favs', JSON.stringify(favorites));
+            
+            // Вибрация и перерисовка
+            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            renderShops();
+            renderFavorites();
+        }
 
         function renderShops() {
             const grid = document.getElementById('shop-grid'); grid.innerHTML = '';
             REGIONS[currentRegion].forEach(key => {
                 const s = ALL_BOTS[key];
-                const card = document.createElement('div'); card.className = 'card';
-                card.onclick = () => openBot(key);
-                card.innerHTML = `<span class="card-icon">${s.i}</span><span class="card-name">${s.n}</span>`;
-                grid.appendChild(card);
+                const isFav = favorites.includes(key);
+                const el = document.createElement('div'); el.className = 'shop-item';
+                // Добавили иконку сердца
+                el.innerHTML = `
+                    <div style="position:absolute; top:10px; right:10px; font-size:18px; z-index:10;" onclick="toggleFav('${key}', event)">
+                        ${isFav ? '❤️' : '🤍'}
+                    </div>
+                    <span class="shop-icon">${s.i}</span>
+                    <span class="shop-name">${s.n}</span>
+                `;
+                el.onclick = () => openBot(key);
+                grid.appendChild(el);
             });
         }
 
+        function renderFavorites() {
+            const container = document.getElementById('page-favorites');
+            if (favorites.length === 0) {
+                // Показываем заглушку, если пусто
+                container.innerHTML = `
+                    <header><h1>FAVORITES</h1></header>
+                    <div class="empty-favorites">
+                        <div class="heart-icon">❤️</div>
+                        <div class="empty-title">No favorites yet</div>
+                        <div class="empty-desc">Add shops to your favorites to see them here</div>
+                    </div>`;
+            } else {
+                // Показываем список избранного
+                let html = `<header><h1>FAVORITES</h1></header><div class="shop-grid">`;
+                favorites.forEach(key => {
+                    const s = ALL_BOTS[key];
+                    if(s) {
+                        html += `
+                        <div class="shop-item" onclick="openBot('${key}')">
+                            <div style="position:absolute; top:10px; right:10px; font-size:18px; z-index:10;" onclick="toggleFav('${key}', event)">❤️</div>
+                            <span class="shop-icon">${s.i}</span><span class="shop-name">${s.n}</span>
+                        </div>`;
+                    }
+                });
+                html += `</div>`;
+                container.innerHTML = html;
+            }
+        }
+
+        // ... [ОСТАЛЬНЫЕ ФУНКЦИИ БЕЗ ИЗМЕНЕНИЙ: openBot, closeBot, sync, tab, etc.] ...
+        
         function openBot(k) {
             const b = ALL_BOTS[k]; document.getElementById('bot-icon').innerText = b.i;
             document.getElementById('bot-name').innerText = b.n; document.getElementById('bot-desc').innerText = b.d;
             document.getElementById('launch-bot-btn').onclick = () => tg.openTelegramLink('https://t.me/'+b.u);
             document.getElementById('bot-overlay').style.display='block';
         }
-
         function closeBot() { document.getElementById('bot-overlay').style.display='none'; }
         function openModal(id) { document.getElementById(id).style.display='block'; }
         function closeModal(id) { document.getElementById(id).style.display='none'; }
-
+        
         async function sync() {
             try {
-                const userId = tg.initDataUnsafe?.user?.id || 0;
-                const res = await fetch(`${API_URL}/get_balance/${userId}`);
-                const data = await res.json();
-                document.getElementById('balance').innerText = data.balance.toFixed(2) + " $";
+                const uid = tg.initDataUnsafe?.user?.id || 0;
+                const r = await fetch(`${API_URL}/get_balance/${uid}`);
+                const d = await r.json();
+                document.getElementById('balance').innerText = d.balance.toFixed(2) + " $";
                 document.getElementById('status-badge').classList.add('online');
-                document.getElementById('status-text').innerText = "ONLINE";
-            } catch(e) {
-                document.getElementById('status-badge').classList.remove('online');
-                document.getElementById('status-text').innerText = "OFFLINE";
-            }
+            } catch(e) { document.getElementById('status-badge').classList.remove('online'); }
         }
 
         function tab(id) {
@@ -326,7 +381,7 @@
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             document.getElementById('page-'+id).classList.add('active');
             document.getElementById('nav-'+id).classList.add('active');
-            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            if (id === 'favorites') renderFavorites(); // Обновляем избранное при входе
         }
 
         function setRegion(f, c) {
@@ -338,17 +393,21 @@
         function copy(t, l) {
             const i = document.createElement('input'); i.value = t; document.body.appendChild(i);
             i.select(); document.execCommand('copy'); document.body.removeChild(i);
-            tg.showAlert(l + " address copied!");
+            tg.showAlert(l + " copied!");
         }
 
         if(tg.initDataUnsafe?.user) {
             const u = tg.initDataUnsafe.user;
             document.getElementById('user-name').innerText = u.first_name;
             document.getElementById('user-avatar').innerText = u.first_name[0];
-            sync(); renderShops();
-        } else { renderShops(); }
+            sync(); 
+        }
+        
+        renderShops(); 
+        renderFavorites();
         setInterval(sync, 15000);
     </script>
+
 </body>
 </html>
 
