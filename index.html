@@ -57,8 +57,6 @@
         .user-info-row span:last-child { color: var(--hint-color); }
 
         /* Маркет */
-        .search-container { margin-bottom: 15px; }
-        #shop-search { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--secondary-bg); color: var(--text-color); outline: none; }
         .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .shop-card { background: var(--secondary-bg); border-radius: 12px; padding: 15px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.05); }
         .shop-logo { font-size: 32px; margin-bottom: 5px; }
@@ -70,9 +68,6 @@
 
     <div id="market-page" class="page active">
         <header>NØVA <span>MARKET</span></header>
-        <div class="search-container">
-            <input type="text" id="shop-search" placeholder="Поиск магазина..." oninput="filterShops()">
-        </div>
         <div id="shop-grid" class="grid-container"></div>
     </div>
 
@@ -101,9 +96,9 @@
     </div>
 
     <script>
-        // --- НАСТРОЙКИ (ИЗМЕНИ ПОД СЕБЯ) ---
-        const API_URL = "https://8dc3e7413023a7.lhr.life";
-        const ADMIN_USERNAME = "dvrkfox"; // Без символа @
+        // АКТУАЛЬНАЯ ССЫЛКА ОБНОВЛЕНА
+        const API_URL = "https://bef8aeed09e357.lhr.life";
+        const ADMIN_USERNAME = "Danya_Admin"; // Сюда впиши свой ник без @
 
         const bots = [
             { name: "AX1 Premium", username: "Only1AXts_bot", icon: "💎", tag: "Premium" },
@@ -115,25 +110,24 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Функция получения баланса с твоего сервера
+        // Запрос баланса у сервера в Termux
         async function updateBalance(userId) {
             try {
                 const response = await fetch(`${API_URL}/get_balance/${userId}`);
                 const data = await response.json();
                 document.getElementById('user-balance').innerText = data.balance.toFixed(2) + " $";
             } catch (e) {
-                console.error("Ошибка баланса:", e);
-                document.getElementById('user-balance').innerText = "Ошибка API";
+                console.error("Ошибка API:", e);
+                document.getElementById('user-balance').innerText = "API OFF";
             }
         }
 
-        // Инициализация данных
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
             const user = tg.initDataUnsafe.user;
             document.getElementById('user-full-name').innerText = user.first_name;
             document.getElementById('user-id').innerText = user.id;
             document.getElementById('avatar-initial').innerText = user.first_name[0];
-            updateBalance(user.id); // Сразу запрашиваем баланс
+            updateBalance(user.id);
         }
 
         function showPage(pageId) {
@@ -144,10 +138,10 @@
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         }
 
-        function renderShops(filter = "") {
+        function renderShops() {
             const container = document.getElementById('shop-grid');
             container.innerHTML = "";
-            bots.filter(b => b.name.toLowerCase().includes(filter.toLowerCase())).forEach(bot => {
+            bots.forEach(bot => {
                 const card = document.createElement('div');
                 card.className = 'shop-card';
                 card.onclick = () => tg.openTelegramLink('https://t.me/' + bot.username);
@@ -159,17 +153,15 @@
         function showDepositOptions() {
             tg.showPopup({
                 title: 'Пополнение',
-                message: 'Выберите способ оплаты:',
+                message: 'Выберите метод оплаты:',
                 buttons: [
-                    {id: 'pay', type: 'default', text: 'Крипта / Карта'},
+                    {id: 'pay', type: 'default', text: 'Криптовалюта / Карта'},
                     {id: 'cancel', type: 'destructive', text: 'Отмена'}
                 ]
             }, function(btnId) {
                 if (btnId === 'pay') tg.openTelegramLink('https://t.me/' + ADMIN_USERNAME);
             });
         }
-
-        function filterShops() { renderShops(document.getElementById('shop-search').value); }
         
         tg.MainButton.setText("ПОДДЕРЖКА").show().onClick(() => tg.openTelegramLink('https://t.me/' + ADMIN_USERNAME));
 
