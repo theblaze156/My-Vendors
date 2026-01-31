@@ -3,169 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NØVA Market</title>
+    <title>NØVA Market Premium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
         :root {
-            --bg-color: var(--tg-theme-bg-color, #1c1c1c);
-            --text-color: var(--tg-theme-text-color, #ffffff);
-            --hint-color: var(--tg-theme-hint-color, #aaaaaa);
-            --button-color: var(--tg-theme-button-color, #3390ec);
-            --secondary-bg: var(--tg-theme-secondary-bg-color, #2b2b2b);
+            --bg-color: #000000;
+            --card-bg: #111111;
+            --accent-color: #007aff;
+            --accent-gradient: linear-gradient(135deg, #007aff 0%, #00c6ff 100%);
+            --text-main: #ffffff;
+            --text-hint: #888888;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --success: #34c759;
+            --warning: #ff9f0a;
+            --danger: #ff3b30;
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-color); color: var(--text-color);
-            margin: 0; padding: 15px; box-sizing: border-box;
-            padding-bottom: 90px;
+            font-family: 'Inter', sans-serif; background-color: var(--bg-color); color: var(--text-main);
+            margin: 0; padding: 0; overflow-x: hidden; min-height: 100vh;
         }
 
-        /* Навигация */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: var(--secondary-bg); display: flex;
-            justify-content: space-around; padding: 12px 0;
-            border-top: 1px solid rgba(255,255,255,0.05); z-index: 100;
-        }
-        .nav-item { text-align: center; font-size: 11px; color: var(--hint-color); flex: 1; cursor: pointer; }
-        .nav-item.active { color: var(--button-color); }
-        .nav-item-icon { font-size: 22px; margin-bottom: 3px; }
+        .container { padding: 16px; padding-bottom: 100px; }
 
-        /* Секции */
+        /* Top Bar */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .status-badge {
+            font-size: 10px; font-weight: 800; padding: 6px 12px; border-radius: 50px;
+            background: var(--glass); border: 1px solid var(--border); display: flex; align-items: center; gap: 6px;
+        }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--danger); }
+        .online .dot { background: var(--success); box-shadow: 0 0 8px var(--success); }
+
+        .region-select {
+            background: var(--glass); border: 1px solid var(--border); padding: 6px 12px;
+            border-radius: 12px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; cursor: pointer;
+        }
+
+        /* Header */
+        header h1 { font-size: 32px; font-weight: 800; margin: 0; letter-spacing: -1.5px; background: var(--accent-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        /* Billboard */
+        .billboard {
+            background: linear-gradient(145deg, #1a1a1c 0%, #0a0a0a 100%);
+            border: 1px solid var(--border); border-radius: 24px; padding: 20px; margin-bottom: 24px;
+            position: relative; overflow: hidden; cursor: pointer; transition: 0.2s;
+        }
+        .billboard:active { transform: scale(0.98); }
+        .billboard-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; color: var(--accent-color); }
+        .billboard-preview { font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.7); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+        /* Grid */
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 24px; text-align: center; }
+        .card-icon { font-size: 32px; margin-bottom: 12px; display: block; }
+        .card-name { font-weight: 700; font-size: 14px; }
+
+        /* Favorites Empty */
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; text-align: center; }
+        .empty-icon { font-size: 70px; color: var(--accent-color); opacity: 0.15; margin-bottom: 20px; }
+        .empty-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+        .empty-text { font-size: 14px; color: var(--text-hint); max-width: 240px; line-height: 1.5; }
+
+        /* Navigation */
+        .nav-bar {
+            position: fixed; bottom: 20px; left: 20px; right: 20px;
+            background: rgba(20, 20, 20, 0.85); backdrop-filter: blur(25px);
+            border: 1px solid var(--border); border-radius: 24px;
+            display: flex; padding: 6px; z-index: 1000;
+        }
+        .nav-item { flex: 1; padding: 12px; text-align: center; border-radius: 18px; color: var(--text-hint); cursor: pointer; }
+        .nav-item.active { background: rgba(255, 255, 255, 0.08); color: var(--accent-color); }
+        .nav-icon { font-size: 20px; display: block; margin-bottom: 2px; }
+        .nav-label { font-size: 11px; font-weight: 700; }
+
+        /* MODALS */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; padding: 20px; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; position: sticky; top: 0; background: #000; padding: 10px 0; z-index: 10; border-bottom: 1px solid var(--border); }
+        
+        /* News Items */
+        .news-item { margin-bottom: 40px; }
+        .news-date { color: var(--accent-color); font-size: 13px; font-weight: 800; display: block; margin-bottom: 8px; }
+        .news-title { font-size: 20px; font-weight: 800; margin-bottom: 15px; }
+        .news-content { font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.9); white-space: pre-line; }
+        .news-divider { border: 0; height: 1px; background: var(--border); margin: 30px 0; }
+        
+        .alert-news { background: rgba(255, 59, 48, 0.1); border: 1px solid var(--danger); padding: 15px; border-radius: 12px; color: var(--danger); font-weight: 700; margin: 15px 0; font-size: 13px; }
+
+        /* Bot View */
+        .bot-page { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; padding: 20px; overflow-y: auto; display: none; }
+        .info-block { background: var(--card-bg); border-radius: 20px; border: 1px solid var(--border); padding: 20px; margin-bottom: 15px; }
+        .info-label { font-size: 11px; font-weight: 800; color: var(--accent-color); text-transform: uppercase; margin-bottom: 8px; }
+        .launch-btn { background: var(--accent-gradient); color: #fff; border: none; width: 100%; padding: 18px; border-radius: 18px; font-weight: 800; font-size: 16px; margin-top: 10px; }
+
         .page { display: none; }
         .page.active { display: block; }
-
-        header { text-align: center; margin-bottom: 15px; font-weight: 800; text-transform: uppercase; }
-        header span { color: var(--button-color); }
-
-        /* Профиль */
-        .profile-card {
-            background: var(--secondary-bg); border-radius: 15px; padding: 20px;
-            text-align: center; margin-bottom: 15px;
-        }
-        .user-avatar { width: 65px; height: 65px; background: var(--button-color); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; }
-        .balance-box { font-size: 26px; font-weight: 800; margin: 15px 0; color: #34c759; }
-        
-        .deposit-btn {
-            background: var(--button-color); color: #fff; border: none;
-            padding: 12px 25px; border-radius: 10px; font-weight: 600;
-            width: 100%; margin-top: 10px; font-size: 15px;
-        }
-
-        .user-info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
-        .user-info-row span:last-child { color: var(--hint-color); }
-
-        /* Маркет */
-        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .shop-card { background: var(--secondary-bg); border-radius: 12px; padding: 15px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.05); }
-        .shop-logo { font-size: 32px; margin-bottom: 5px; }
-        .shop-title { font-weight: 600; font-size: 13px; margin-bottom: 5px; }
-        .tag { font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 700; text-transform: uppercase; background: rgba(52, 199, 89, 0.1); color: #34c759; }
     </style>
 </head>
 <body>
 
-    <div id="market-page" class="page active">
-        <header>NØVA <span>MARKET</span></header>
-        <div id="shop-grid" class="grid-container"></div>
+    <div id="main-ui">
+        <div class="container">
+            <div class="top-bar">
+                <div class="status-badge" id="status-badge">
+                    <div class="dot"></div> <span id="status-text">SYNC...</span>
+                </div>
+                <div class="region-select" onclick="openModal('region-modal')">
+                    <span id="current-flag">🇪🇺</span> <span id="current-region">EU</span>
+                </div>
+            </div>
+
+            <!-- HOME PAGE -->
+            <div id="page-home" class="page active">
+                <header><h1>TELEBAZAAR</h1><p>Premium Ecosystem</p></header>
+                <div class="billboard" onclick="openModal('news-modal')">
+                    <div class="billboard-title">🚀 TeleBazaar Update</div>
+                    <div class="billboard-preview">We’ve rolled out new features and major improvements to make the marketplace faster...</div>
+                </div>
+                <div class="grid" id="shop-grid"></div>
+            </div>
+
+            <!-- FAVORITES PAGE -->
+            <div id="page-favorites" class="page">
+                <header><h1>FAVORITES</h1></header>
+                <div class="empty-state">
+                    <div class="empty-icon">❤️</div>
+                    <div class="empty-title">No favorites yet</div>
+                    <div class="empty-text">Add shops to your favorites to see them here</div>
+                </div>
+            </div>
+
+            <!-- PROFILE PAGE -->
+            <div id="page-profile" class="page">
+                <header><h1>PROFILE</h1></header>
+                <div class="info-block" style="text-align: center;">
+                    <div style="width: 80px; height: 80px; background: var(--accent-gradient); border-radius: 50%; margin: 0 auto 15px; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800;" id="user-avatar">?</div>
+                    <h2 id="user-name">User</h2>
+                    <div style="font-size: 40px; font-weight: 800; margin: 20px 0;" id="balance">0.00 $</div>
+                    <button class="launch-btn" onclick="openModal('pay-modal')">TOP UP BALANCE</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="profile-page" class="page">
-        <header>ВАШ <span>ПРОФИЛЬ</span></header>
-        <div class="profile-card">
-            <div class="user-avatar" id="avatar-initial">?</div>
-            <h3 id="user-full-name">Загрузка...</h3>
-            <div class="balance-box" id="user-balance">0.00 $</div>
-            <button class="deposit-btn" onclick="showDepositOptions()">➕ ПОПОЛНИТЬ</button>
+    <!-- NEWS MODAL (FULL TEXT) -->
+    <div id="news-modal" class="modal">
+        <div class="modal-header">
+            <h2 style="margin: 0;">📢 Market announcements</h2>
+            <div style="color: var(--accent-color); font-weight: 800;" onclick="closeModal('news-modal')">DONE</div>
         </div>
-        <div class="profile-card" style="padding: 5px 20px;">
-            <div class="user-info-row"><span>ID:</span><span id="user-id">0</span></div>
-            <div class="user-info-row"><span>Статус:</span><span>Client</span></div>
-            <div class="user-info-row"><span>Регион:</span><span>EU / LV</span></div>
+        
+        <!-- JAN 19 -->
+        <div class="news-item">
+            <span class="news-date">📅 2026-01-19 10:57</span>
+            <div class="news-title">🚀 SIRENA MARKET TelebaZar Update</div>
+            <div class="news-content">We’ve rolled out new features and major improvements to make the marketplace faster, more stable, and more powerful 🔥
+
+            ⚠️ <b>Important for vendors:</b>
+            Due to these technical changes, all product photos must be re-uploaded.
+            Unfortunately, existing images cannot be migrated automatically — this step is required to ensure correct operation of the new system and upcoming features.
+
+            💡 <b>What you get in return:</b>
+             • improved image processing
+             • more stable product display
+             • a solid foundation for future updates
+
+            🙏 Thank you for your understanding and continued support.
+            We’re building TeleBazaar for the long run — together.
+
+            If you have any questions, our team is always here 💬</div>
+        </div>
+
+        <hr class="news-divider">
+
+        <!-- JAN 15 -->
+        <div class="news-item">
+            <span class="news-date">📅 2026-01-15 18:25</span>
+            <div class="news-title">🚀 Televend TeleBazar SIRENA , RAMP BOHEMIA Update: Global Expansion !</div>
+            <div class="news-content">Today we are rolling out a massive update to the TESSERACT ecosystem. We've focused on breaking down language barriers and making the shopping experience seamless for everyone.
+
+            👇 <b>Here is what's new:</b>
+
+            🇸🇦 <b>Arabic Language Support</b>
+            We have officially added Arabic to our supported languages!
+
+            Full Interface Translation: All menus, buttons, and system messages are now available in Arabic.
+            RTL Support: Optimized layout for Right-to-Left languages.</div>
+        </div>
+
+        <hr class="news-divider">
+
+        <!-- JAN 13 -->
+        <div class="news-item">
+            <span class="news-date">📅 2026-01-13 13:09</span>
+            <div class="news-title">🚀 TeleBazaar HUB — Major Update Released 01.13.26</div>
+            <div class="news-content">A powerful update is live. Below is the full list of new features and critical changes.
+
+            ⸻
+
+            ⚠️ <b>Important for Sellers</b>
+
+            <b>WARNING</b>
+
+            <div class="alert-news">🚨 DATA RESET (WIPE)
+            Due to the transition to a new global architecture, all previous data has been wiped.
+            You must recreate your shops and re-add products.</div>
+
+            ⸻
+
+            🌍 <b>Global System & Ecosystem</b>
+
+            🔗 <b>All-in-One Bot</b>
+            Products, referral system, and vendor catalog are now unified into a single global network.
+            Your products are visible across the entire chain.</div>
         </div>
     </div>
 
-    <div class="bottom-nav">
-        <div id="nav-market" class="nav-item active" onclick="showPage('market')">
-            <div class="nav-item-icon">🛒</div>Маркет
+    <!-- BOT OVERLAY -->
+    <div id="bot-overlay" class="bot-page">
+        <div style="color: var(--accent-color); font-weight: 800; margin-bottom: 30px;" onclick="closeBot()">← BACK TO MARKET</div>
+        <div style="text-align: center; margin-bottom: 30px;">
+            <div style="font-size: 80px;" id="bot-icon">🤖</div>
+            <h1 id="bot-name" style="margin: 10px 0;">Bot Name</h1>
+            <div style="color: var(--success); font-weight: 800; font-size: 11px;">● VERIFIED BRANCH</div>
         </div>
-        <div id="nav-profile" class="nav-item" onclick="showPage('profile')">
-            <div class="nav-item-icon">👤</div>Профиль
+        <div class="info-block">
+            <div class="info-label">About Service</div>
+            <div id="bot-desc" class="info-value">...</div>
         </div>
+        <div class="info-block" style="border-color: var(--danger);">
+            <div class="info-label" style="color: var(--danger);">Security Warning</div>
+            <div class="info-value">Direct payment only. NO ESCROW. Use at your own risk.</div>
+        </div>
+        <button class="launch-btn" id="launch-bot-btn">LAUNCH SHOP 🚀</button>
     </div>
+
+    <!-- OTHER MODALS (REGION, PAY) -->
+    <div id="region-modal" class="modal">
+        <div class="modal-header"><h2>Regions</h2><div style="color:var(--accent-color);font-weight:800;" onclick="closeModal('region-modal')">CANCEL</div></div>
+        <div class="info-block" onclick="setRegion('🇬🇧','UK')">United Kingdom</div>
+        <div class="info-block" onclick="setRegion('🇪🇺','EU')">Europe Central</div>
+        <div class="info-block" onclick="setRegion('🇳🇴','NO')">Norway</div>
+        <div class="info-block" onclick="setRegion('🇪🇪','EE')">Estonia</div>
+    </div>
+
+    <div id="pay-modal" class="modal">
+        <div class="modal-header"><h2>Deposit</h2><div style="color:var(--accent-color);font-weight:800;" onclick="closeModal('pay-modal')">CLOSE</div></div>
+        <div class="alert-news" style="background:rgba(255,159,10,0.1); border-color:var(--warning); color:var(--warning);">⚠️ NO ESCROW / Direct Payment.</div>
+        <div class="info-block" onclick="copy('bc1qfmm3e6etrucpdasput87ssyz9rzk0pa62qevqh', 'BTC')">₿ BTC: bc1qfmm3e6...</div>
+        <div class="info-block" onclick="copy('ltc1qww602trpcwjmpexjuw00ag4um3jxw299cd2qz2', 'LTC')">Ł LTC: ltc1qww60...</div>
+    </div>
+
+    <nav class="nav-bar">
+        <div class="nav-item active" id="nav-home" onclick="tab('home')">
+            <span class="nav-icon">🛒</span><span class="nav-label">Home</span>
+        </div>
+        <div class="nav-item" id="nav-favorites" onclick="tab('favorites')">
+            <span class="nav-icon">⭐</span><span class="nav-label">Favorites</span>
+        </div>
+        <div class="nav-item" id="nav-profile" onclick="tab('profile')">
+            <span class="nav-icon">👤</span><span class="nav-label">Profile</span>
+        </div>
+    </nav>
 
     <script>
-        // АКТУАЛЬНАЯ ССЫЛКА ОБНОВЛЕНА
-        const API_URL = "https://1a41a631919c18.lhr.life";
-        const ADMIN_USERNAME = "dvrkfox"; // Сюда впиши свой ник без @
-
-        const bots = [
-            { name: "AX1 Premium", username: "Only1AXts_bot", icon: "💎", tag: "Premium" },
-            { name: "Narvesen Shop", username: "narvesen05bot", icon: "🏪", tag: "Retail" },
-            { name: "WW King", username: "WorIdWideKing_tsbot", icon: "👑", tag: "Global" },
-            { name: "UK Reserve", username: "UK_National_Reserve_tsbot", icon: "🇬🇧", tag: "Reserve" }
-        ];
-
+        const API_URL = "https://78bfdee8c95754.lhr.l";
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        // Запрос баланса у сервера в Termux
-        async function updateBalance(userId) {
+        const ALL_BOTS = {
+            ax: { n: "AX1 Premium", u: "Only1AXts_bot", i: "💎", d: "Elite NØVA branch. VIP service and high-speed delivery." },
+            king: { n: "WW King", u: "WorIdWideKing_tsbot", i: "👑", d: "Global hub. Wholesale and retail goods for everyone." },
+            narvesen: { n: "Narvesen Shop", u: "narvesen05bot", i: "🏪", d: "Northern Europe branch. Serving NO & EE." },
+            uk: { n: "UK Reserve", u: "UK_National_Reserve_tsbot", i: "🇬🇧", d: "Official UK stock. Local shipments." }
+        };
+
+        const REGIONS = { UK:['ax','king','uk'], EU:['ax','king','narvesen'], US:['ax','king'], NO:['narvesen','king'], EE:['narvesen','king'] };
+        let currentRegion = 'EU';
+
+        function renderShops() {
+            const grid = document.getElementById('shop-grid'); grid.innerHTML = '';
+            REGIONS[currentRegion].forEach(key => {
+                const s = ALL_BOTS[key];
+                const card = document.createElement('div'); card.className = 'card';
+                card.onclick = () => openBot(key);
+                card.innerHTML = `<span class="card-icon">${s.i}</span><span class="card-name">${s.n}</span>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function openBot(k) {
+            const b = ALL_BOTS[k]; document.getElementById('bot-icon').innerText = b.i;
+            document.getElementById('bot-name').innerText = b.n; document.getElementById('bot-desc').innerText = b.d;
+            document.getElementById('launch-bot-btn').onclick = () => tg.openTelegramLink('https://t.me/'+b.u);
+            document.getElementById('bot-overlay').style.display='block';
+        }
+
+        function closeBot() { document.getElementById('bot-overlay').style.display='none'; }
+        function openModal(id) { document.getElementById(id).style.display='block'; }
+        function closeModal(id) { document.getElementById(id).style.display='none'; }
+
+        async function sync() {
             try {
-                const response = await fetch(`${API_URL}/get_balance/${userId}`);
-                const data = await response.json();
-                document.getElementById('user-balance').innerText = data.balance.toFixed(2) + " $";
-            } catch (e) {
-                console.error("Ошибка API:", e);
-                document.getElementById('user-balance').innerText = "API OFF";
+                const userId = tg.initDataUnsafe?.user?.id || 0;
+                const res = await fetch(`${API_URL}/get_balance/${userId}`);
+                const data = await res.json();
+                document.getElementById('balance').innerText = data.balance.toFixed(2) + " $";
+                document.getElementById('status-badge').classList.add('online');
+                document.getElementById('status-text').innerText = "ONLINE";
+            } catch(e) {
+                document.getElementById('status-badge').classList.remove('online');
+                document.getElementById('status-text').innerText = "OFFLINE";
             }
         }
 
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            const user = tg.initDataUnsafe.user;
-            document.getElementById('user-full-name').innerText = user.first_name;
-            document.getElementById('user-id').innerText = user.id;
-            document.getElementById('avatar-initial').innerText = user.first_name[0];
-            updateBalance(user.id);
-        }
-
-        function showPage(pageId) {
+        function tab(id) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById(pageId + '-page').classList.add('active');
-            document.getElementById('nav-' + pageId).classList.add('active');
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            document.getElementById('page-'+id).classList.add('active');
+            document.getElementById('nav-'+id).classList.add('active');
+            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
         }
 
-        function renderShops() {
-            const container = document.getElementById('shop-grid');
-            container.innerHTML = "";
-            bots.forEach(bot => {
-                const card = document.createElement('div');
-                card.className = 'shop-card';
-                card.onclick = () => tg.openTelegramLink('https://t.me/' + bot.username);
-                card.innerHTML = `<div class="shop-logo">${bot.icon}</div><div class="shop-title">${bot.name}</div><span class="tag">${bot.tag}</span>`;
-                container.appendChild(card);
-            });
+        function setRegion(f, c) {
+            currentRegion = c; document.getElementById('current-flag').innerText = f;
+            document.getElementById('current-region').innerText = c;
+            renderShops(); closeModal('region-modal');
         }
 
-        function showDepositOptions() {
-            tg.showPopup({
-                title: 'Пополнение',
-                message: 'Выберите метод оплаты:',
-                buttons: [
-                    {id: 'pay', type: 'default', text: 'Криптовалюта / Карта'},
-                    {id: 'cancel', type: 'destructive', text: 'Отмена'}
-                ]
-            }, function(btnId) {
-                if (btnId === 'pay') tg.openTelegramLink('https://t.me/' + ADMIN_USERNAME);
-            });
+        function copy(t, l) {
+            const i = document.createElement('input'); i.value = t; document.body.appendChild(i);
+            i.select(); document.execCommand('copy'); document.body.removeChild(i);
+            tg.showAlert(l + " address copied!");
         }
-        
-        tg.MainButton.setText("ПОДДЕРЖКА").show().onClick(() => tg.openTelegramLink('https://t.me/' + ADMIN_USERNAME));
 
-        renderShops();
+        if(tg.initDataUnsafe?.user) {
+            const u = tg.initDataUnsafe.user;
+            document.getElementById('user-name').innerText = u.first_name;
+            document.getElementById('user-avatar').innerText = u.first_name[0];
+            sync(); renderShops();
+        } else { renderShops(); }
+        setInterval(sync, 15000);
     </script>
 </body>
 </html>
+
