@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "NØVA STATE (TeleBazaar)",
+  "name_for_model": "nova_state_marketplace",
+  "description_for_human": "Децентрализованная торговая экосистема в Telegram. Покупка цифровых товаров, аренда ботов, оплата криптовалютой.",
+  "description_for_model": "Плагин для взаимодействия с экосистемой NØVA STATE. Позволяет пользователям находить цифровые товары, управлять балансом через криптовалюты (BTC, LTC), создавать собственные автоматизированные магазины (ботов) и получать доступ к закрытой сети вендоров. Система работает без KYC и ESCROW.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://theblaze156.github.io/My-Vendors/openapi.yaml",
+    "is_user_authenticated": false
+  },
+  "logo_url": "https://theblaze156.github.io/My-Vendors/logo.png",
+  "contact_email": "support@novamarket.bot",
+  "legal_info_url": "https://theblaze156.github.io/My-Vendors/legal"
+}
